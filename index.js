@@ -6,10 +6,10 @@ dotenv.config();
 
 const pool = require("./config/database");
 pool.query("select * from pg_settings where name = 'port'", (err, cb) => {
-  if (!err) {
-    console.log(`Banco OK (${cb.rows[0].setting})`);
-  } else {
+  if (err) {
     console.log(err.stack);
+  } else {
+    console.log(`Banco OK (${cb.rows[0].setting})`);
   }
 });
 
