@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const session = require("express-session");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -16,7 +17,16 @@ pool.query("select * from pg_settings where name = 'port'", (err, cb) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(
+  session({
+    resave: false,
+    saveUninitialized: true,
+    secret: process.env.SESSIONSECRET,
+  })
+);
+
 app.use(require("./routes/userRoutes"));
+app.use(require("./routes/loginRoutes"));
 
 app.listen(process.env.SVPORT, () => {
   console.log(`Servidor OK (${process.env.SVPORT})`);
