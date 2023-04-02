@@ -1,15 +1,20 @@
 const pool = require("../config/database");
 
-const readUser = (req, res) => {
-  pool.query("select now()", (err, cb) => {
-    if (err) {
-      res.status(400).send(err);
-    } else {
-      res.status(200).send({ now: cb.rows[0].now });
+const readMyUser = async (req, res) => {
+  const userId = req.session.userId;
+  pool.query(
+    "SELECT * FROM user_details WHERE id = $1",
+    [userId],
+    (err, cb) => {
+      if (err) {
+        res.status(400).send({ message: err.stack });
+      } else {
+        res.status(200).send({ message: cb.rows[0] });
+      }
     }
-  });
+  );
 };
 
 module.exports = {
-  readUser,
+  readMyUser,
 };

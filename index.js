@@ -23,6 +23,12 @@ app.use(
     saveUninitialized: true,
     cookie: { maxAge: 86400000 },
     secret: process.env.SESSIONSECRET,
+    /*store: pool.query("insert alguma porra em alguma caralha", (err, cb) => {
+  if (err) {
+    console.log(err.stack);
+  } else {
+    console.log(`Banco OK (${cb.rows[0].setting})`);
+  }*/
   })
 );
 
