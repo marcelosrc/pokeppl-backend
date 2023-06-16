@@ -6,10 +6,10 @@ const readMyUser = async (req, res) => {
     "SELECT * FROM user_details WHERE id = $1",
     [userId],
     (err, cb) => {
-      if (err) {
-        res.status(400).send({ message: err.stack });
-      } else {
+      if (!err) {
         res.status(200).send({ message: cb.rows[0] });
+      } else {
+        res.status(400).send({ message: err.stack });
       }
     }
   );
