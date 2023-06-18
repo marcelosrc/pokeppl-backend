@@ -34,6 +34,7 @@ app.use(
 
 app.use(require("./routes/userRoutes"));
 app.use(require("./routes/loginRoutes"));
+app.use(require("./routes/gameMechanicsRoutes"));
 
 app.listen(process.env.SVPORT, () => {
   console.log(`Servidor OK (${process.env.SVPORT})`);
