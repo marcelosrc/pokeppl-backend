@@ -16,6 +16,20 @@ const captureUser = async (req, res) => {
   );
 };
 
+const ranking = async (req, res) => {
+  pool.query(
+    "SELECT username, captured_ppl_count FROM user_details ORDER BY captured_ppl_count DESC",
+    (err, cb) => {
+      if (!err) {
+        res.status(200).send({ message: cb.rows });
+      } else {
+        res.status(400).send({ message: err.stack });
+      }
+    }
+  );
+};
+
 module.exports = {
   captureUser,
+  ranking,
 };
