@@ -32,7 +32,21 @@ const ranking = async (req, res) => {
 const inventory = async (req, res) => {
   const userId = req.session.userId;
   pool.query(
-    `SELECT itm.id, itm.item, inv.quantity FROM inventory inv, items itm WHERE inv.item = itm.id AND inv.id = ${userId}`,
+    `SELECT itm.id, itm.item, inv.quantity FROM inventory inv JOIN items itm ON inv.item = itm.id WHERE inv.id = ${userId}`,
+    (err, cb) => {
+      if (!err) {
+        res.status(200).send({ message: cb.rows });
+      } else {
+        res.status(400).send({ message: err.stack });
+      }
+    }
+  );
+};
+
+const shelter = async (req, res) => {
+  const userId = req.session.userId;
+  pool.query(
+    `SELECT ud.* FROM user_details ud JOIN captured cpt ON ud.id = ANY(cpt.captured_ppl) JOIN users usr ON cpt.id = usr.id WHERE usr.id = ${userId}`,
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });
@@ -47,4 +61,5 @@ module.exports = {
   captureUser,
   ranking,
   inventory,
+  shelter
 };
