@@ -61,5 +61,5 @@ module.exports = {
   captureUser,
   ranking,
   inventory,
-  shelter
+  shelter,
 };
