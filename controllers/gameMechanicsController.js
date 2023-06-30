@@ -3,7 +3,7 @@ const pool = require("../config/database");
 const captureUser = async (req, res) => {
   const userId = req.session.userId;
   const anyUserId = req.params.anyUserId;
-  if (Math.random() > process.env.CAPTURECHANCE) {
+  if (Math.random() < process.env.CAPTURECHANCE) {
     pool.query(
       `UPDATE captured SET captured_ppl = array_append(captured_ppl, ${anyUserId}) WHERE id = $1;`,
       [userId],
