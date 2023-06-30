@@ -3,12 +3,32 @@ const pool = require("../config/database");
 const captureUser = async (req, res) => {
   const userId = req.session.userId;
   const anyUserId = req.params.anyUserId;
+  if (Math.random() > process.env.CAPTURECHANCE) {
+    pool.query(
+      `UPDATE captured SET captured_ppl = array_append(captured_ppl, ${anyUserId}) WHERE id = $1;`,
+      [userId],
+      (err, cb) => {
+        if (!err) {
+          res.status(200).send({ message: "CAPTURED" });
+        } else {
+          res.status(400).send({ message: err.stack });
+        }
+      }
+    );
+  } else {
+    res.status(200).send({ message: "NOT CAPTURED" });
+  }
+};
+
+const setUserFree = async (req, res) => {
+  const userId = req.session.userId;
+  const anyUserId = req.params.anyUserId;
   pool.query(
-    `UPDATE captured SET captured_ppl = array_append(captured_ppl, ${anyUserId}) WHERE id = $1;`,
+    `UPDATE captured SET captured_ppl = array_remove(captured_ppl, ${anyUserId}) WHERE id = $1;`,
     [userId],
     (err, cb) => {
       if (!err) {
-        res.status(200).send({ message: "OK" });
+        res.status(200).send({ message: "FREED" });
       } else {
         res.status(400).send({ message: err.stack });
       }
@@ -59,6 +79,7 @@ const shelter = async (req, res) => {
 
 module.exports = {
   captureUser,
+  setUserFree,
   ranking,
   inventory,
   shelter,
