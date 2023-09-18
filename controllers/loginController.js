@@ -15,7 +15,7 @@ const login = async (req, res) => {
     }
     req.session.userId = query.rows[0].id;
 
-    console.log(req.rawHeaders);
+    //console.log(req.rawHeaders);
 
     return res.status(200).send(req.session);
   } catch (err) {
