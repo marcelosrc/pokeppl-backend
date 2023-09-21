@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const session = require("express-session");
+const passport = require("passport");
+const FacebookStrategy = require("passport-facebook");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -23,13 +25,32 @@ app.use(
     saveUninitialized: true,
     cookie: { maxAge: 86400000 },
     secret: process.env.SESSIONSECRET,
-    /*store: pool.query("insert alguma porra em alguma caralha", (err, cb) => {
-  if (err) {
-    console.log(err.stack);
-  } else {
-    console.log(`Banco OK (${cb.rows[0].setting})`);
-  }*/
   })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function (user, cb) {
+  cb(null, user);
+});
+
+passport.deserializeUser(function (obj, cb) {
+  cb(null, obj);
+});
+
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOKAPPID,
+      clientSecret: process.env.FACEBOOKSECRET,
+      callbackURL: "/login/auth/facebook/redirect",
+      profileFields: ["id", "displayName", "picture.type(large)", "gender", "name"],
+    },
+    function (accessToken, refreshToken, profile, cb) {
+      return cb(null, profile);
+    }
+  )
 );
 
 app.use(require("./routes/userRoutes"));

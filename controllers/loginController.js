@@ -1,6 +1,31 @@
 const pool = require("../config/database");
 
 const login = async (req, res) => {
+  const user_details = {
+    id: req.user.id,
+    name: req.user.name.givenName,
+    gender: req.user.gender,
+    picture: req.user.photos ? req.user.photos[0].value : undefined,
+  };
+
+  console.log(user_details);
+
+  return res.redirect("/");
+};
+
+const logout = (req, res) => {
+  req.session.destroy();
+  res.status(200).send(req.session);
+};
+
+module.exports = {
+  login,
+  logout,
+};
+
+/*
+
+const login = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).send({ message: "ERR" });
@@ -22,13 +47,4 @@ const login = async (req, res) => {
     return res.status(401).send({ message: err });
   }
 };
-
-const logout = (req, res) => {
-  req.session.destroy();
-  res.status(200).send(req.session);
-};
-
-module.exports = {
-  login,
-  logout,
-};
+*/
