@@ -1,12 +1,14 @@
 const pool = require("../config/database");
 
 const captureUser = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   const anyUserId = req.params.anyUserId;
   if (Math.random() < process.env.CAPTURECHANCE) {
     pool.query(
-      `UPDATE captured SET captured_ppl = array_append(captured_ppl, ${anyUserId}) WHERE id = $1;`,
-      [userId],
+      `UPDATE captured
+      SET captured_ppl = array_append(captured_ppl, ${anyUserId})
+      WHERE id = $1;`,
+      [currentUser.id],
       (err, cb) => {
         if (!err) {
           res.status(200).send({ message: "CAPTURED" });
@@ -21,11 +23,13 @@ const captureUser = async (req, res) => {
 };
 
 const setUserFree = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   const anyUserId = req.params.anyUserId;
   pool.query(
-    `UPDATE captured SET captured_ppl = array_remove(captured_ppl, ${anyUserId}) WHERE id = $1;`,
-    [userId],
+    `UPDATE captured
+    SET captured_ppl = array_remove(captured_ppl, ${anyUserId})
+    WHERE id = $1;`,
+    [currentUser.id],
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: "FREED" });
@@ -37,8 +41,11 @@ const setUserFree = async (req, res) => {
 };
 
 const ranking = async (req, res) => {
+  //REVER ACESSO DE SESSÃO
   pool.query(
-    "SELECT username, captured_ppl_count FROM user_details ORDER BY captured_ppl_count DESC",
+    `SELECT MAX(name), COUNT(captured_ppl)
+    FROM users
+    ORDER BY COUNT(captured_ppl) DESC`,
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });
@@ -50,9 +57,12 @@ const ranking = async (req, res) => {
 };
 
 const inventory = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   pool.query(
-    `SELECT itm.id, itm.item, inv.quantity FROM inventory inv JOIN items itm ON inv.item = itm.id WHERE inv.id = ${userId}`,
+    `SELECT itm.id, itm.item, inv.quantity
+    FROM inventory inv
+    JOIN items itm ON inv.item = itm.id
+    WHERE inv.id = ${currentUser.id}`,
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });
@@ -64,9 +74,13 @@ const inventory = async (req, res) => {
 };
 
 const shelter = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   pool.query(
-    `SELECT ud.* FROM user_details ud JOIN captured cpt ON ud.id = ANY(cpt.captured_ppl) JOIN users usr ON cpt.id = usr.id WHERE usr.id = ${userId}`,
+    `SELECT ud.*
+    FROM users ud
+    JOIN captured cpt ON ud.id = ANY(cpt.captured_ppl)
+    JOIN users usr ON cpt.id = usr.id
+    WHERE usr.id = ${currentUser.id}`,
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });

@@ -1,10 +1,12 @@
 const pool = require("../config/database");
 
 const readMyUser = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   pool.query(
-    "SELECT * FROM user_details WHERE id = $1",
-    [userId],
+    `SELECT *
+    FROM users
+    WHERE facebook_id = $1`,
+    [currentUser.id],
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows[0] });
@@ -16,9 +18,14 @@ const readMyUser = async (req, res) => {
 };
 
 const readAnyUsers = async (req, res) => {
-  const userId = req.session.userId;
+  const currentUser = req.session.passport.user;
   pool.query(
-    `SELECT * FROM user_details WHERE id <> ${userId} AND id NOT IN (SELECT UNNEST(captured_ppl) FROM user_details WHERE id = ${userId})`,
+    `SELECT *
+    FROM users
+    WHERE facebook_id <> $1
+    AND id NOT IN (SELECT UNNEST(captured_ppl)
+    FROM users WHERE id = $1)`,
+    [currentUser.id],
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });

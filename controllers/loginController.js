@@ -1,16 +1,55 @@
 const pool = require("../config/database");
 
-const login = async (req, res) => {
-  const user_details = {
-    id: req.user.id,
-    name: req.user.name.givenName,
-    gender: req.user.gender,
-    picture: req.user.photos ? req.user.photos[0].value : undefined,
+const currentSession = async (req, res) => {
+  const currentUser = req.session.passport.user;
+  const userDetails = {
+    id: currentUser.id,
+    name: currentUser.name.givenName,
+    gender: currentUser.gender,
+    picture: currentUser.photos ? currentUser.photos[0].value : null,
   };
 
-  console.log(user_details);
-
-  return res.redirect("/");
+  if (req.session.passport.user) {
+    pool.query(
+      `SELECT *
+      FROM users
+      WHERE facebook_id = $1;`,
+      [userDetails.id],
+      (err, cb) => {
+        if (!err && cb.rowCount === 1) {
+          return res.status(200).send(cb);
+        } else if (!err && cb.rowCount === 0) {
+          pool.query(
+            `DO $$
+        
+            DECLARE
+              user_id INTEGER;
+              
+            BEGIN
+            
+            INSERT INTO pokeppl.users(id, name, profile_pic_path, captured_ppl, facebook_id)
+            VALUES (DEFAULT, '${userDetails.name}', '${userDetails.picture}', DEFAULT, ${userDetails.id})
+            RETURNING id INTO user_id;
+            
+            INSERT INTO pokeppl.inventory(id, quantity, item)
+            VALUES (user_id, null, null);
+            
+            END $$;`,
+            (err, cb) => {
+              if (!err) {
+                return res.status(200).send(cb);
+              } else {
+                console.log(userDetails.name);
+                return res.status(400).send(err.stack);
+              }
+            }
+          );
+        } else {
+          return res.status(404).send(err);
+        }
+      }
+    );
+  }
 };
 
 const logout = (req, res) => {
@@ -19,32 +58,6 @@ const logout = (req, res) => {
 };
 
 module.exports = {
-  login,
+  currentSession,
   logout,
 };
-
-/*
-
-const login = async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).send({ message: "ERR" });
-  }
-  try {
-    const query = await pool.query(
-      "SELECT id, password FROM users WHERE username = $1",
-      [username]
-    );
-    if (!query.rows[0] || query.rows[0].password !== password) {
-      return res.status(401).send({ message: "ERR" });
-    }
-    req.session.userId = query.rows[0].id;
-
-    //console.log(req.rawHeaders);
-
-    return res.status(200).send(req.session);
-  } catch (err) {
-    return res.status(401).send({ message: err });
-  }
-};
-*/
