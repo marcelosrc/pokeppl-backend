@@ -44,7 +44,7 @@ passport.use(
       clientID: process.env.FACEBOOKAPPID,
       clientSecret: process.env.FACEBOOKSECRET,
       callbackURL: "/login/auth/facebook/redirect",
-      profileFields: ["id", "displayName", "picture.type(large)", "gender", "name"],
+      profileFields: ["id", "picture.type(large)", "name"],
     },
     function (accessToken, refreshToken, profile, cb) {
       return cb(null, profile);

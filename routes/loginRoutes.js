@@ -10,7 +10,6 @@ router.get("/login/auth/facebook/redirect", [
   passport.authenticate("facebook", {
     failureRedirect: "http://www.turmadamonica.com.br",
     failureMessage: true,
-    successRedirect: "http://localhost:3000/",
   }),
   loginController.currentSession,
 ]);

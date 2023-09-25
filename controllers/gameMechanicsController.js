@@ -5,9 +5,9 @@ const captureUser = async (req, res) => {
   const anyUserId = req.params.anyUserId;
   if (Math.random() < process.env.CAPTURECHANCE) {
     pool.query(
-      `UPDATE captured
+      `UPDATE users
       SET captured_ppl = array_append(captured_ppl, ${anyUserId})
-      WHERE id = $1;`,
+      WHERE facebook_id = $1;`,
       [currentUser.id],
       (err, cb) => {
         if (!err) {
@@ -26,9 +26,9 @@ const setUserFree = async (req, res) => {
   const currentUser = req.session.passport.user;
   const anyUserId = req.params.anyUserId;
   pool.query(
-    `UPDATE captured
+    `UPDATE users
     SET captured_ppl = array_remove(captured_ppl, ${anyUserId})
-    WHERE id = $1;`,
+    WHERE facebook_id = $1;`,
     [currentUser.id],
     (err, cb) => {
       if (!err) {
@@ -41,11 +41,29 @@ const setUserFree = async (req, res) => {
 };
 
 const ranking = async (req, res) => {
-  //REVER ACESSO DE SESSÃO
   pool.query(
-    `SELECT MAX(name), COUNT(captured_ppl)
+    `SELECT name, ARRAY_LENGTH(captured_ppl, 1) AS captured_ppl_count
+    FROM pokeppl.users
+    ORDER BY captured_ppl_count`,
+    (err, cb) => {
+      if (!err) {
+        res.status(200).send({ message: cb.rows });
+      } else {
+        res.status(400).send({ message: err.stack });
+      }
+    }
+  );
+};
+
+const people = async (req, res) => {
+  const currentUser = req.session.passport.user;
+  pool.query(
+    `SELECT *
     FROM users
-    ORDER BY COUNT(captured_ppl) DESC`,
+    WHERE facebook_id <> $1
+    AND id NOT IN (SELECT UNNEST(captured_ppl)
+    FROM users WHERE facebook_id = $1)`,
+    [currentUser.id],
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });
@@ -76,11 +94,14 @@ const inventory = async (req, res) => {
 const shelter = async (req, res) => {
   const currentUser = req.session.passport.user;
   pool.query(
-    `SELECT ud.*
-    FROM users ud
-    JOIN captured cpt ON ud.id = ANY(cpt.captured_ppl)
-    JOIN users usr ON cpt.id = usr.id
-    WHERE usr.id = ${currentUser.id}`,
+    `SELECT *
+    FROM users
+    WHERE id = ANY(
+      SELECT UNNEST(captured_ppl)
+      FROM users
+      WHERE facebook_id = $1
+    );`,
+    [currentUser.id],
     (err, cb) => {
       if (!err) {
         res.status(200).send({ message: cb.rows });
@@ -95,6 +116,7 @@ module.exports = {
   captureUser,
   setUserFree,
   ranking,
+  people,
   inventory,
   shelter,
 };
