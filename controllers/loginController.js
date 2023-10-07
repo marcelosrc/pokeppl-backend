@@ -1,10 +1,18 @@
 const pool = require("../config/database");
 
+const checkCurrentSession = async (req, res) => {
+  if (req.session.passport) {
+    res.status(200).send();
+  } else {
+    res.status(401).send();
+  }
+};
+
 const isLogged = async (req, res, next) => {
   if (req.session.passport) {
     next();
   } else {
-    res.status(403).send({ message: "NO SESSION" });
+    res.status(401).send();
   }
 };
 
@@ -64,6 +72,7 @@ const logout = (req, res) => {
 };
 
 module.exports = {
+  checkCurrentSession,
   isLogged,
   currentSession,
   logout,
