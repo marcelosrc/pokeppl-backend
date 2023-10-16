@@ -5,8 +5,6 @@ const loginController = require("../controllers/loginController");
 
 const router = express.Router();
 
-router.get("/checkauth", loginController.checkCurrentSession);
-
 router.get("/login/auth/facebook", passport.authenticate("facebook"));
 router.get("/login/auth/facebook/redirect", [
   passport.authenticate("facebook", {
